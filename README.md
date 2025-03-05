@@ -26,10 +26,7 @@ aws configure set aws_access_key_id S3RVER
 aws configure set aws_secret_access_key S3RVER
 aws configure set region us-east-1
 ```
-Création du bucket S3 :
-```sh
-aws --endpoint-url=http://localhost:4569 s3 mb s3://s3memestorage-dev
-```
+
 ### 3️⃣ Installation des dépendances
 
 ```sh
