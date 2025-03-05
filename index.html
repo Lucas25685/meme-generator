@@ -36,6 +36,7 @@
     
     <img id="generated-meme" alt="Generated Meme" style="display:none;">
     <p id="meme-url" style="display:none;"></p>
+    <button id="download-btn" style="display:none;">Télécharger le Meme</button>
     
     <script>
         const form = document.getElementById('meme-form');
@@ -44,6 +45,8 @@
         const textBottomInput = document.getElementById('text-bottom');
         const generatedMeme = document.getElementById('generated-meme');
         const memeUrl = document.getElementById('meme-url');
+        const downloadBtn = document.getElementById('download-btn');
+        let imageUrl = '';
 
         form.addEventListener('submit', function(event) {
             event.preventDefault();
@@ -70,10 +73,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.url) {
+                        imageUrl = data.url;
                         generatedMeme.src = data.url;
                         generatedMeme.style.display = 'block';
                         memeUrl.textContent = `URL: ${data.url}`;
                         memeUrl.style.display = 'block';
+                        downloadBtn.style.display = 'block';
                     }
                 })
                 .catch(error => {
@@ -82,6 +87,13 @@
             };
             
             reader.readAsDataURL(file);
+        });
+
+        downloadBtn.addEventListener('click', function() {
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = 'meme.png';
+            link.click();
         });
     </script>
 </body>
