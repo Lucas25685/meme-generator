@@ -37,14 +37,7 @@ npm install
 
 Démarrer le service avec Serverless Offline et S3 local :
 ```sh
-serverless offline start
-```
-
-## 📡 Déploiement sur AWS
-
-Pour déployer le projet sur AWS, utilisez :
-```sh
-serverless deploy
+serverless offline 
 ```
 
 ## 📤 API Endpoint
