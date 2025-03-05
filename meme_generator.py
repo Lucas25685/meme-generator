@@ -32,7 +32,7 @@ def handler(event, context):
 
         image_width, image_height = image.size
 
-        for text, y_position in [(text_top, 10), (text_bottom, image_height - 70)]:
+        for text, y_position in [(text_top, 5), (text_bottom, image_height - 70)]:
             bbox = draw.textbbox((0, 0), text, font=font)
             text_width = bbox[2] - bbox[0]
 

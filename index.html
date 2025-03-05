@@ -13,9 +13,9 @@
             margin: 0;
             padding: 20px;
         }
-        #meme-canvas {
-            border: 1px solid #ccc;
+        #generated-meme {
             margin-top: 20px;
+            max-width: 100%;
         }
     </style>
 </head>
@@ -34,54 +34,54 @@
         <button type="submit">Générer le Meme</button>
     </form>
     
-    <canvas id="meme-canvas"></canvas>
-    <button id="download-btn" style="display:none;">Télécharger le Meme</button>
+    <img id="generated-meme" alt="Generated Meme" style="display:none;">
+    <p id="meme-url" style="display:none;"></p>
     
     <script>
         const form = document.getElementById('meme-form');
         const imageInput = document.getElementById('image-input');
         const textTopInput = document.getElementById('text-top');
         const textBottomInput = document.getElementById('text-bottom');
-        const canvas = document.getElementById('meme-canvas');
-        const ctx = canvas.getContext('2d');
-        const downloadBtn = document.getElementById('download-btn');
+        const generatedMeme = document.getElementById('generated-meme');
+        const memeUrl = document.getElementById('meme-url');
 
         form.addEventListener('submit', function(event) {
             event.preventDefault();
+            
+            const file = imageInput.files[0];
             const reader = new FileReader();
+            
             reader.onload = function() {
-                const img = new Image();
-                img.onload = function() {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    ctx.font = '25px Impact';
-                    ctx.fillStyle = 'white';
-                    ctx.strokeStyle = 'black';
-                    ctx.lineWidth = 2;
-                    ctx.textAlign = 'center';
-                    
-                    // Dessiner le texte en haut
-                    ctx.fillText(textTopInput.value, canvas.width / 2, 60);
-                    ctx.strokeText(textTopInput.value, canvas.width / 2, 60);
-                    
-                    // Dessiner le texte en bas
-                    ctx.fillText(textBottomInput.value, canvas.width / 2, canvas.height - 20);
-                    ctx.strokeText(textBottomInput.value, canvas.width / 2, canvas.height - 20);
-
-                    // Afficher le bouton de téléchargement
-                    downloadBtn.style.display = 'block';
+                const base64Image = reader.result.split(',')[1];
+                
+                const payload = {
+                    image: base64Image,
+                    "text-top": textTopInput.value,
+                    "text-bottom": textBottomInput.value
                 };
-                img.src = reader.result;
+                
+                fetch('http://localhost:3000/dev/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.url) {
+                        generatedMeme.src = data.url;
+                        generatedMeme.style.display = 'block';
+                        memeUrl.textContent = `URL: ${data.url}`;
+                        memeUrl.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
             };
-            reader.readAsDataURL(imageInput.files[0]);
-        });
-
-        downloadBtn.addEventListener('click', function() {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = 'meme.png';
-            link.click();
+            
+            reader.readAsDataURL(file);
         });
     </script>
 </body>
