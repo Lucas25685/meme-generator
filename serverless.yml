@@ -1,9 +1,5 @@
-# "org" ensures this Service is used with the correct Serverless Framework Access Key.
-
-# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
-app: url-shortener
-# "service" is the name of this project. This will also be added to your AWS resource names.
-service: url-shortener
+app: s3memestorage
+service: S3MemeStorage
 
 provider:
   name: aws
@@ -11,76 +7,60 @@ provider:
   stage: dev
   region: us-east-1
   environment:
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    S3_BUCKET: ${self:service}-${opt:stage, self:provider.stage}
   iam:
     role:
       statements:
         - Effect: Allow
           Action:
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+            - s3:PutObject
+          Resource:
+            - "arn:aws:s3:::${self:provider.environment.S3_BUCKET}"
 
 functions:
-  hello:
-    handler: handler.index
+  MemeGenerator:
+    handler: meme_generator.handler
+    runtime: python3.11
     events:
       - http:
-          path: ""
-          method: get
-
-  createUrl:
-    handler: handler.createUrl
-    events:
-      - http:
-          path: url
+          path: upload
           method: post
+          request:
+            schemas:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    image:
+                      type: string
+                      description: "Base64 encoded image"
+                    text-top:
+                      type: string
+                      description: "Additional text data"
+                    text-bottom:
+                      type: string
+                      description: "Additional text data"
+                  required:
+                    - image
+                    - text-top
+                    - text-bottom
+plugins:
+  - serverless-offline
+  - serverless-s3-local
 
-  listUrls:
-    handler: handler.listUrls
-    events:
-      - http:
-          path: url
-          method: get
-
-  getUrl:
-    handler: handler.getUrl
-    events:
-      - http:
-          path: url/{key}
-          method: get
+custom:
+  s3:
+    host: localhost
+    port: 4569
+    directory: .s3
+    accessKeyId: S3RVER
+    secretAccessKey: S3RVER
+    bucketName: ${self:provider.environment.S3_BUCKET}
 
 resources:
   Resources:
-    UrlTable:
-      Type: AWS::DynamoDB::Table
+    UrlStorage:
+      Type: AWS::S3::Bucket
       Properties:
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
-        AttributeDefinitions:
-          - AttributeName: key
-            AttributeType: S
-        KeySchema:
-          - AttributeName: key
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
+        BucketName: ${self:provider.environment.S3_BUCKET}
 
-plugins:
-  - serverless-offline
-  - serverless-dynamodb
-
-custom:
-  serverless-dynamodb:
-    # If you only want to use DynamoDB Local in some stages, declare them here
-    stages:
-      - dev
-    start:
-      docker: true
-      port: 8000
-      inMemory: true
-      migrate: true
-      seed: true
-      convertEmptyValues: true

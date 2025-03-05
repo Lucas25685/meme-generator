@@ -19,3 +19,4 @@ logs/
 # IDE specific files
 .vscode/
 .idea/
+/AWSCLIV2.pkg
