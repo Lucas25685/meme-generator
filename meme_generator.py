@@ -32,23 +32,25 @@ def handler(event, context):
 
         image_width, image_height = image.size
 
-        for text, y_position in [(text_top, 10), (text_bottom, image_height - 20)]:
-                bbox = draw.textbbox((0, 0), text, font=font)
-                text_width = bbox[2] - bbox[0]
+        for text, y_position in [(text_top, 10), (text_bottom, image_height - 70)]:
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
 
-                x_position = (image_width - text_width) // 2
+            x_position = (image_width - text_width) // 2
 
-                for dx in range(-2, 3):
-                    for dy in range(-2, 3):
-                        draw.text((x_position + dx, y_position + dy), text, font=font, fill="black")
+            # Draw border
+            for dx in range(-2, 3):
+                for dy in range(-2, 3):
+                    draw.text((x_position + dx, y_position + dy), text, font=font, fill="white")
 
-                draw.text((x_position, y_position), text, font=font, fill="white")
+            # Draw text
+            draw.text((x_position, y_position), text, font=font, fill="black")
 
         output_buffer = BytesIO()
         image.save(output_buffer, format="PNG")
         output_buffer.seek(0)
 
-        file_name = f"meme_{text}.png"
+        file_name = f"meme_{text_top}_{text_bottom}.png"
         s3.put_object(
             Bucket=BUCKET_NAME,
             Key=file_name,
@@ -63,5 +65,3 @@ def handler(event, context):
 
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
-
-
